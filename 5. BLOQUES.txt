@@ -1,0 +1,93 @@
+
+/*-----------------------BLOQUES ANIDADOS--------------*/
+--LOS BLOQUES SON INDEPENDIENTES PERO PUEDEN HEREDAR COSAS
+SET SERVEROUTPUT ON
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('holaaa te saludo desde el primer bloque');
+    DECLARE
+        x number :=10;
+    BEGIN
+    DBMS_OUTPUT.PUT_LINE(X);
+    END;
+END;
+
+
+/*----------------AMBITO DE VARIABLES EN BLOQUE ANIDADOS----------*/
+--IMPRIMO VARIABLES LOCALES Y GLOBALES
+
+SET SERVEROUTPUT ON
+
+DECLARE
+    x   NUMBER := 20;  --GLOBAL
+    Z   NUMBER:=30;
+BEGIN
+    dbms_output.put_line('X:='|| x); --IMPRIMO GLOBAL
+    DECLARE
+        x   NUMBER := 10;  --LOCAL
+        z   number:=100;
+        y number:=200;
+    BEGIN
+        dbms_output.put_line('X:='|| x); -- IMPRIMO LOCAL
+        dbms_output.put_line('Z:='|| Z); -- IMPRIMO LOCAL
+    END;
+   -- dbms_output.put_line('Y:='|| y);   
+END;
+
+
+
+/*-------------------------------------------------*/
+
+Indicar que valores visualiza X en los 3 casos de este ejemplo?
+SET SERVEROUTPUT ON
+DECLARE
+    X NUMBER:=10;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(X);
+    DECLARE
+       X NUMBER:=20;
+    BEGIN
+       DBMS_OUTPUT.PUT_LINE(X);
+    END;
+
+DBMS_OUTPUT.PUT_LINE(X);​
+END;
+/
+
+Solución:
+10
+20
+10
+
+¿Es este bloque correcto? Si no es así ¿por qué falla?
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(X);
+    DECLARE
+       X NUMBER:=20;
+    BEGIN
+       DBMS_OUTPUT.PUT_LINE(X);
+    END;
+    DBMS_OUTPUT.PUT_LINE(X);
+END;
+/
+
+Falla porque la variable X está solo en el bloque anidado y por tanto no puede ser vista desde el bloque principal
+
+
+SET SERVEROUTPUT ON
+DECLARE
+    X NUMBER:=10;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(X);
+    
+    BEGIN
+       DBMS_OUTPUT.PUT_LINE(X);
+    END;
+    DBMS_OUTPUT.PUT_LINE(X);
+END;
+/
+
+Es correcto porque la variable X definida en el padre es vista por el bloque hijo
+Los valores visualizados son 
+10
+10
+10

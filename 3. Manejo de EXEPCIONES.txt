@@ -1,0 +1,145 @@
+/*DESPLEGAR UN ERROR SOBRE UN VALOR NEGATIVO*/
+DECLARE
+    e_valor_negativo EXCEPTION;  --EXEPCION DEFINIDA POR EL USUARIO
+    v_valor number;
+
+BEGIN 
+    v_valor := -1;
+    IF v_valor < 0  THEN
+        raise e_valor_negativo; --RAISE SIGNIFICA QUE SE DEBE DISPARAR LA EXEPCION DE VALOR NEGATIVO
+    end if;
+/*----------------AREAS DE EXEPCIONES------------------*/
+exception 
+    when e_valor_negativo THEN --MANEJADORES PARA CONTROLAR LA EXCEPTION
+    dbms_output.put_line('El valor no puede ser negativo');
+end;
+/
+
+-- SI ESTA EN SQL/PLUS DEBE EJECUTAR EL COMANDO
+-- SET SERVEROUTPUT ON
+
+/*------------------------------------------------------------------------------------------*/
+
+--LANZAR MENSAJE POR DIVISION ENTRE 0
+
+DECLARE
+    err_num number;
+    err_msg varchar2(255);
+    result number;
+BEGIN 
+    select 1/0
+      INTO result
+    FROM dual;
+exception 
+    when others THEN
+    err_num := SQLCODE;
+    err_msg := SQLERRM;
+    dbms_output.put_line('Error:'||To_char(err_num));
+    dbms_output.put_line(err_msg);
+end;
+/
+
+
+/*--------------------------------------------------------------------------------------*/
+--No puedes dividir por 0 cuando con color rojo y rango de errores los demas ya estan utilizados
+
+DECLARE
+    v_DIV number;
+BEGIN 
+    select 1/0
+      INTO v_DIV
+    FROM dual;
+exception 
+    when others THEN
+    raise_application_error(-20001,'No puedes dividir por 0'); --el rango de numeros debe estar entre -20000 y -20999
+end;
+/ 
+
+
+/*------------------------------NO PUEDE ACTUALIZA--------------------------------------------------*/
+
+
+DECLARE
+    e_no_puede_actualizar exception;
+    --cuando el error -01507 suceda se va relacionar con la variable que creamos
+    --por ende podremos controlar el mensaje de error
+    pragma exception_init(e_no_puede_actualizar,-01407);
+BEGIN 
+    update employees
+        set email = null
+    where employee_id = 100;
+exception 
+    when e_no_puede_actualizar THEN
+    dbms_output.put_line('No se va poder actualizar');    
+end;
+/
+
+
+
+/*----------------------------- VALIDAR SI EL SALARIO ES MAYOR A 1000 SALARIO ALTO--------------------------*/
+DECLARE
+    e_salario_alto exception;
+    v_salary_check integer;
+BEGIN 
+    SELECT salary
+        into v_salary_check
+     from employees   
+    where employee_id = 100;
+if v_salary_check > 1000 then
+    raise e_salario_alto;
+end if;
+exception 
+    when e_salario_alto THEN
+    dbms_output.put_line('Este salario es demasiado alto');    
+end;
+/
+
+
+/*--------------------PROCEDIMIENTO PARA GESTIONAR LAS REGIONES--------------------------*/
+
+Create or replace procedure gestiona_regions(p_accion char,
+                                   p_region_id regions.region_id%type,
+                                   p_region_name regions.region_name%type) is
+e_accion_no_valida exception;
+e_actualizacion_no_valida exception;
+e_eliminacion_no_valida exception;
+v_cantidad number;
+begin
+ select count(*)
+   into v_cantidad
+   from regions
+  where region_id = p_region_id;
+
+ if p_accion = 'I' then
+     insert into regions(region_id, region_name)
+     values(p_region_id, p_region_name);
+ elsif p_accion = 'U' then
+    if v_cantidad = 0 then
+       raise e_actualizacion_no_valida;
+    end if;
+     update regions
+       set region_name = p_Region_name
+     where region_id = p_region_id;
+ elsif p_accion = 'D' then
+   if v_cantidad = 0 then
+       raise e_eliminacion_no_valida;
+    end if;
+     delete regions
+      where region_id = p_region_id;
+ else 
+   raise e_accion_no_valida;
+ end if;
+exception when e_accion_no_valida then
+             dbms_output.put_line('error accion de operación no valida');
+          when e_actualizacion_no_valida then
+              dbms_output.put_line('Error...registro no valido para actualizar');
+          when e_eliminacion_no_valida then
+              dbms_output.put_line('Error...Registro no valido para eliminar');
+          when dup_val_on_index then
+             dbms_output.put_line('Registro de llave primaria duplicado');
+           when no_data_found then
+             dbms_output.put_line('Registro de llave primaria no existente');
+end;
+/
+
+--EXEC GESTIONA_REGIONS('D',8,NULL);

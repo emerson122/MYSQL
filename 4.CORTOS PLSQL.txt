@@ -1,0 +1,87 @@
+/*------------------constantes pl/sql------------------------*/
+
+--las constantes son variables que no pueden modificarse
+SET SERVEROUTPUT ON --PARA IMPRIMIRLO EN PANTALLA
+DECLARE
+  X CONSTANT NUMBER :=10; -- ASI SE DECLARA UNA CONSTANTE
+  Z NUMBER NOT NULL :=20;
+BEGIN 
+	
+DBMS_OUTPUT.PUT_LINE(X);
+z :=30; --no es constantes si deja cambiar el not null
+DBMS_OUTPUT.PUT_LINE(Z);
+END;
+
+
+/*-----varaibles boleans--*/
+
+DECLARE
+   B1 BOOLEAN;
+BEGIN
+   B1:=TRUE;
+   B1:=FALSE;
+   B1:=NULL;
+END;
+
+
+/*--  ATRIBUTO %TYPE
+	NOS PERMITE CREA UNA VARIABLE QUE SEA DEL MISMO TIPO QUE OTRO
+	SE UTILIZA PARA IGUALAR UNA VARIABLE A UNA COLUMNA
+---*/
+
+DECLARE
+  X NUMBER;
+  Z X%TYPE;  --Z SEA IGUAL A X
+  EMPLE EMPLOYEES.SALARY%TYPE;
+BEGIN
+  EMPLE:=100; --EMPLEADO ES IGUAL A EMPLOYEES.SALARY
+END;
+
+
+/*-----------------------------OPERADORES------------------*/
+
+SET SERVEROUTPUT ON
+DECLARE
+/* OPERADORES MÁS HABITUALES
+
+   +    SUMA
+   -    RESTA
+   /    DIVISIÓN
+   *    MULTIPLICACIÓN
+   **   EXPONENTE
+   ||   CONCATENAR
+SI UN OPERADOR ESTA NULO NO SE PUEDE SUMAR NI RESTAR NI NADA SOLOMENTE SE LE PUEDE ASIGNAR UN VALOR
+*/
+  X NUMBER:=5;
+  Z NUMBER:=10;
+  A VARCHAR2(100):='EXAMPLE';
+  D DATE:='10-MAR-1990';
+BEGIN
+  DBMS_OUTPUT.PUT_LINE(SYSDATE);
+  DBMS_OUTPUT.PUT_LINE(D+1);
+
+
+END;
+/
+/*----------------------------OPERADORES----------------------*/
+
+DECLARE
+/* OPERADORES MÁS HABITUALES
+
+   +    SUMA
+   -    RESTA
+   /    DIVISIÓN
+   *    MULTIPLICACIÓN
+   **   EXPONENTE
+   ||   CONCATENAR
+*/
+  X NUMBER := 5;
+  Z NUMBER := 10;
+  A VARCHAR2(100) :='EXAMPLE';
+  D DATE := '10-01-1990';
+BEGIN
+  --DBMS_OUTPUT.PUT_LINE(SYSDATE);
+  DBMS_OUTPUT.PUT_LINE(D);
+END;
+
+

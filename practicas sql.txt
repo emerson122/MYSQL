@@ -1,0 +1,377 @@
+CREATE OR REPLACE FUNCTION DEPARTMENT_AVG(P_DEPARTMENT_NAME HR.DEPARTMENTS.DEPARTMENT_NAME%TYPE) RETURN VARCHAR IS
+--ESTA VARIABLES ES CON LA QUE VOY A SACAR MIS CALCULOS
+V_AVG NUMBER;
+
+-- VARIBLE CON LA QUE RECIBO EL MENSAJE
+V_MESS VARCHAR(255);
+
+BEGIN
+
+
+--
+SELECT ROUND(AVG(SALARY),2)
+INTO V_AVG
+FROM HR.EMPLOYEES E, HR.DEPARTMENTS D
+WHERE  E.DEPARTMENT_ID = D.DEPARTMENT_ID
+AND D.DEPARTMENT_NAME = P_DEPARTMENT_NAME;
+
+V_MESS := ('El departamento' || P_DEPARTMENT_NAME ||' tiene un salario promedio de: ' || to_char(v_avg));
+return v_mess;
+end;
+/
+
+
+/*EJECUTAR LA FUNCION*/
+declare
+v_texto varchar(500);
+begin
+v_texto := department_avg('Sales');
+DBMS_OUTPUT.PUT_LINE(v_texto);
+end;
+/
+
+
+
+/**********************************************************************/
+
+
+CREATE OR REPLACE FUNCTION empleado_tiene_historial(p_employee_id hr.employees.employee_id%type) return boolean is
+v_contador number; --variable de contador para contar los numeros de registros
+begin
+--aqui le digo que cuento todoo lo que tenga
+/*Seleccion y cuenta ingresa en la variable v_contador desde la tabla hr,job_history con valor denominado j y cuando en la tabla de hr.job history haiga un valor que sea igual al parametro que me paso el usuario*/
+select count(*)
+into v_contador
+from hr.job_history j
+where j.employee_id = p_employee_id;
+
+if v_contador = 0 then
+    return false; -- si en el contador no existen registros va retornar un false
+else
+return true; -- cualquier otro valor diferente de 0 vas a retornar un true
+end if;
+end;
+/
+
+
+
+/*EJECUTAR LA FUNCION*/
+declare
+v_resultado boolean;
+begin
+v_resultado := empleado_tiene_historial(101);
+if v_resultado then
+DBMS_OUTPUT.PUT_LINE('El Empleado tiene historial');
+else
+DBMS_OUTPUT.PUT_LINE('El Empleado no tiene historial');
+end if;
+end;
+/
+
+
+
+/*******************************************************************/
+
+
+/*
+3.	Crear una función que reciba como parámetro el Employee_id, y retorne la cantidad de subordinados o personal a c
+argo que este tiene (El campo manager_id indica el jefe de cada empleado)
+
+*/
+CREATE OR REPLACE FUNCTION Empleados_acargo(P_employee_id HR.employees.employee_id%TYPE) RETURN number IS
+v_contadora number;
+begin
+select count(*)
+into v_contadora
+from hr.employees e
+where e.manager_id = p_employee_id;
+
+return (v_contadora);
+end;
+/
+
+
+
+/*EJECUTAR LA FUNCION*/
+declare
+v_resultado number;
+begin
+v_resultado := Empleados_acargo(101);
+DBMS_OUTPUT.PUT_LINE('su personal a cargo es:' || to_char(v_resultado));
+end;
+/
+
+/*********************************************/
+/*********************************************/
+/*4.	Crear un procedimiento para insertar registros en la tabla  Employees,  recibirá como parámetros todos los campos existentes, 
+deberá controlar por medio de excepción si el Employee_id ya existe en la tabla de empleados y desplegar mensaje indicándolo. */
+CREATE OR REPLACE PROCEDURE INS_EMPLOYEES(
+    P_EMPLOYEE_ID       HR.EMPLOYEES.EMPLOYEE_ID%TYPE,
+    P_FIRST_NAME        HR.EMPLOYEES.FIRST_NAME%TYPE,
+    P_LAST_NAME         HR.EMPLOYEES.LAST_NAME%TYPE,
+    P_EMAIL             HR.EMPLOYEES.EMAIL%TYPE,
+    P_PHONE_NUMBER      HR.EMPLOYEES.PHONE_NUMBER%TYPE,
+    P_HIRE_DATE         HR.EMPLOYEES.HIRE_DATE%TYPE,
+    P_JOB_ID            HR.EMPLOYEES.JOB_ID%TYPE,
+    P_SALARY            HR.EMPLOYEES.SALARY%TYPE,
+    P_COMMISSION_PCT    HR.EMPLOYEES.COMMISSION_PCT%TYPE,
+    P_MANAGER_ID        HR.EMPLOYEES.MANAGER_ID%TYPE,
+    P_DEPARTMENT_ID     HR.EMPLOYEES.DEPARTMENT_ID%TYPE) IS
+    BEGIN
+    INSERT INTO EMPLOYEES
+    (EMPLOYEE_ID,FIRST_NAME,LAST_NAME,EMAIL,PHONE_NUMBER,HIRE_DATE,JOB_ID,SALARY,COMMISSION_PCT	,MANAGER_ID,DEPARTMENT_ID)
+    VALUES
+    (P_EMPLOYEE_ID,P_FIRST_NAME,P_LAST_NAME,P_EMAIL,P_PHONE_NUMBER,P_HIRE_DATE,P_JOB_ID,P_SALARY,P_COMMISSION_PCT,P_MANAGER_ID,P_DEPARTMENT_ID);
+    exception
+    WHEN dup_val_on_index then -- dup_val_on_index esta expresion captura el valor cunado intento enviar un valor duplicado
+    DBMS_OUTPUT.PUT_LINE('ERROR DE COPILACION ID YA EXISTE');
+    END;
+    /
+
+
+/*EJECUTAR LA FUNCION*/
+declare
+    V_EMPLOYEE_ID       HR.EMPLOYEES.EMPLOYEE_ID%TYPE := 1;
+    V_FIRST_NAME        HR.EMPLOYEES.FIRST_NAME%TYPE := 'Emerson';
+    V_LAST_NAME         HR.EMPLOYEES.LAST_NAME%TYPE := 'Ramos';
+    V_EMAIL             HR.EMPLOYEES.EMAIL%TYPE := 'emerson.ramos@gmail.com';
+    V_PHONE_NUMBER      HR.EMPLOYEES.PHONE_NUMBER%TYPE := 97600543;
+    V_HIRE_DATE         HR.EMPLOYEES.HIRE_DATE%TYPE := '01-mar-2022';
+    V_JOB_ID            HR.EMPLOYEES.JOB_ID%TYPE := 'IT_PROG';
+    V_SALARY            HR.EMPLOYEES.SALARY%TYPE := 900000;
+    V_COMMISSION_PCT    HR.EMPLOYEES.COMMISSION_PCT%TYPE := 0;
+    V_MANAGER_ID        HR.EMPLOYEES.MANAGER_ID%TYPE := 101;
+    V_DEPARTMENT_ID     HR.EMPLOYEES.DEPARTMENT_ID%TYPE :=60;
+begin
+INS_EMPLOYEES(V_EMPLOYEE_ID, V_FIRST_NAME ,V_LAST_NAME,V_EMAIL,V_PHONE_NUMBER,V_HIRE_DATE ,V_JOB_ID,V_SALARY ,V_COMMISSION_PCT,V_MANAGER_ID,V_DEPARTMENT_ID);
+end;
+/
+
+
+/*******************************************************************/
+
+/*
+5.	Crear un procedimiento para eliminar registro de la tabla de Employees,
+recibirá como parámetro el  Employee_id, y controlara con excepción si el Employee_id 
+no existe, enviara mensaje indicándolo.
+*/
+
+CREATE OR  REPLACE PROCEDURE DEL_EMP(P_ID HR.EMPLOYEES.EMPLOYEE_ID%TYPE) IS
+--variable para contar los registros de la tabla employeesw
+V_CONTADOR NUMBER;
+EMP_NO_EXISTE EXCEPTION; --exception que se dispara cuando no exista el codigo ingresado
+BEGIN
+SELECT COUNT(*)
+INTO V_CONTADOR
+FROM EMPLOYEES
+WHERE EMPLOYEE_ID = P_ID;
+IF V_CONTADOR = 0 THEN
+	RAISE EMP_NO_EXISTE;
+END IF;
+DELETE FROM EMPLOYEES
+WHERE EMPLOYEE_ID=P_ID;
+EXCEPTION
+	WHEN EMP_NO_EXISTE THEN
+	DBMS_OUTPUT.PUT_LINE('ERROR CODIGO DE EMPLEADO NO EXISTE');
+END;
+/
+
+
+/**********EJECUTAR PROCEDIMIENTO********************/
+DECLARE
+V_EMPLOYEE_ID HR.EMPLOYEES.EMPLOYEE_ID%TYPE := 100000;
+BEGIN
+ DEL_EMP(V_EMPLOYEE_ID);
+END;
+/
+
+
+
+/****************************************************************/
+
+
+/*
+6.	Crear un procedimiento para actualizar todos los valores de la tabla Employees, recibirá como parámetro todas las columnas de la tabla, y actualizará las columnas 
+con los nuevos valores que se envíen. Controlar por medio de Excepción si el registro no existe, y desplegar un mensaje indicándolo.
+
+*/
+CREATE OR REPLACE PROCEDURE ACTUALIZAR_EMPLEADO( 		  
+    P_EMPLOYEE_ID    	HR.EMPLOYEES.EMPLOYEE_ID%TYPE,
+    P_FIRST_NAME 		HR.EMPLOYEES.FIRST_NAME%TYPE,
+    P_LAST_NAME         HR.EMPLOYEES.LAST_NAME%TYPE,
+    P_EMAIL             HR.EMPLOYEES.EMAIL%TYPE,
+    P_PHONE_NUMBER      HR.EMPLOYEES.PHONE_NUMBER%TYPE,
+    P_HIRE_DATE         HR.EMPLOYEES.HIRE_DATE%TYPE,
+    P_JOB_ID            HR.EMPLOYEES.JOB_ID%TYPE,
+    P_SALARY            HR.EMPLOYEES.SALARY%TYPE,
+    P_COMMISSION_PCT    HR.EMPLOYEES.COMMISSION_PCT%TYPE,
+    P_MANAGER_ID        HR.EMPLOYEES.MANAGER_ID%TYPE,
+    P_DEPARTMENT_ID     HR.EMPLOYEES.DEPARTMENT_ID%TYPE) IS
+    
+    V_CONTADOR NUMBER;
+    EMP_NO_EXISTE EXCEPTION;
+    BEGIN
+    -- AQUI CUENTO CUANTOS REGISTROS EXISTEN EN LA TABLA EMPLEADOS
+    SELECT COUNT(*)
+    INTO V_CONTADOR
+    FROM EMPLOYEES
+    WHERE EMPLOYEE_ID = P_EMPLOYEE_ID;
+    -- SI ES IGUAL A 0 SE EJECUTA QUE NO ENCONTRO NADA
+    IF V_CONTADOR =0 THEN
+    RAISE EMP_NO_EXISTE;
+    END IF;
+    -- SI NO HAY ERROR SE EJECUTA EL SIGUIENTE CODIGO
+    
+    UPDATE EMPLOYEES
+    SET FIRST_NAME=P_FIRST_NAME,
+    LAST_NAME=P_LAST_NAME,
+    EMAIL=P_EMAIL,
+    PHONE_NUMBER=P_PHONE_NUMBER,
+    HIRE_DATE=P_HIRE_DATE,
+    JOB_ID=P_JOB_ID,
+    SALARY=P_SALARY,
+    COMMISSION_PCT = P_COMMISSION_PCT,
+    MANAGER_ID = P_MANAGER_ID,
+    DEPARTMENT_ID=P_DEPARTMENT_ID
+    WHERE EMPLOYEE_ID = P_EMPLOYEE_ID;
+    EXCEPTION
+    WHEN EMP_NO_EXISTE THEN
+    	DBMS_OUTPUT.PUT_LINE('Error codigo de empleado no existe');
+    END;
+    /
+
+
+
+/*EJECUTAR LA FUNCION*/
+declare
+    V_EMPLOYEE_ID       HR.EMPLOYEES.EMPLOYEE_ID%TYPE := 2;
+    V_FIRST_NAME        HR.EMPLOYEES.FIRST_NAME%TYPE := 'EXEQUIEL';
+    V_LAST_NAME         HR.EMPLOYEES.LAST_NAME%TYPE := 'VELASQUEZ';
+    V_EMAIL             HR.EMPLOYEES.EMAIL%TYPE := 'emersramos@gmail.com';
+    V_PHONE_NUMBER      HR.EMPLOYEES.PHONE_NUMBER%TYPE := 97600843;
+    V_HIRE_DATE         HR.EMPLOYEES.HIRE_DATE%TYPE := '02-mar-2022';
+    V_JOB_ID            HR.EMPLOYEES.JOB_ID%TYPE := 'IT_PROG';
+    V_SALARY            HR.EMPLOYEES.SALARY%TYPE := 900000;
+    V_COMMISSION_PCT    HR.EMPLOYEES.COMMISSION_PCT%TYPE := 0;
+    V_MANAGER_ID        HR.EMPLOYEES.MANAGER_ID%TYPE := 101;
+    V_DEPARTMENT_ID     HR.EMPLOYEES.DEPARTMENT_ID%TYPE :=60;
+begin
+actualizar_EMPLEADO(V_EMPLOYEE_ID, V_FIRST_NAME ,V_LAST_NAME,V_EMAIL,V_PHONE_NUMBER,V_HIRE_DATE ,V_JOB_ID,V_SALARY ,V_COMMISSION_PCT,V_MANAGER_ID,V_DEPARTMENT_ID);
+end;
+/
+
+
+
+
+/*************************************************/
+/*
+7.	Crear una Función que recibirá como parámetro el Employee_id y retornara el nombre completo del empleado, 
+deberá controlar por medio de excepción si el Employee_id no existe en la tabla de empleados y desplegar mensaje indicándolo.
+
+*/
+
+CREATE OR REPLACE FUNCTION RETORNA_NOMBRE(P_EMPLOYEE_ID HR.EMPLOYEES.EMPLOYEE_ID%TYPE) return varchar is
+v_nombre varchar(250);
+Begin
+
+select first_name || ' '|| last_name into v_nombre
+from employees e
+where e.employee_id = P_employee_id;
+
+return (v_nombre);
+exception
+when no_data_found then
+dbms_output.put_line('Error codigo de empleado no existe');
+return (null);
+end;
+/
+
+
+/********************EJECUTAR FUNCION***********************************/
+declare
+v_resultado varchar2(250);
+begin
+    v_resultado := retorna_nombre(1);
+    dbms_output.put_line('NOMBRE: ' || V_RESULTADO);
+    END;
+/
+
+
+
+/********************************************/
+/*
+8.	Crear una función que deberá de actualizar los salarios de todos los empleados de un departamento ‘X’ por un porcentaje de valor ingresado. 
+Retornará verdadero si la actualización fue exitosa y falso si se generó algún error durante la misma.
+
+*/
+
+CREATE OR REPLACE FUNCTION ACTUALIZAR_SALARIOS(P_DEPARTMENT_ID EMPLOYEES.DEPARTMENT_ID%TYPE, P_PORCENTAJE NUMBER)
+RETURN BOOLEAN IS 
+BEGIN
+
+UPDATE EMPLOYEES
+SET SALARY = SALARY *((100+P_PORCENTAJE))/100
+WHERE DEPARTMENT_ID =P_DEPARTMENT_ID;
+RETURN(TRUE);
+EXCEPTION
+WHEN OTHERS THEN
+dbms_output.put_line('ERROR EN LA ACTUALIZACION DEL SALARIO');
+RETURN(FALSE);
+END;
+/
+
+
+/****************************/
+DECLARE
+V_RESULTADO BOOLEAN;
+BEGIN
+V_RESULTADO :=ACTUALIZAR_SALARIOS(60,20);
+END;
+/
+
+
+
+/*
+9.	Crear un procedimiento que recibirá como parámetros el número de Departamento, y 
+retornara como parámetro, el salario más alto de ese departamento, el salario más bajo del departamento, 
+el promedio de Salario y el total de empleados del departamento
+
+*/
+CREATE OR REPLACE PROCEDURE ESCALA_SALARIOS(P_DEPARTMENT_ID EMPLOYEES.EMPLOYEE_ID%TYPE,
+P_MAXIMO OUT NUMBER,
+P_MINIMO OUT NUMBER,
+P_AVG    OUT NUMBER,
+P_TOTAL  OUT NUMBER) IS
+V_MAXIMO NUMBER;
+V_MINIMO NUMBER; 
+V_AVG    NUMBER;
+V_TOTAL NUMBER;
+BEGIN
+--FUNCIONES DE PLSQL MAXIMO DE SALARIO MINIMO DE SALARIO PROMEDIO DE SALARIO(AVG) TOTAL DE SALARIO(CONTADOR)
+    SELECT MAX(SALARY), MIN(SALARY), AVG(SALARY), COUNT(SALARY) 
+    INTO V_MAXIMO,V_MINIMO,V_AVG,V_TOTAL
+    FROM HR.EMPLOYEES E
+    WHERE E.DEPARTMENT_ID = P_DEPARTMENT_ID;
+    P_MAXIMO := V_MAXIMO;
+    P_MINIMO := V_MINIMO;
+    P_AVG    := V_AVG;
+    P_TOTAL  := V_TOTAL;
+    EXCEPTION
+    WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('Error al trata de generar valores del departamento');
+    END;
+    /
+
+/**********************EJECUTAR FUNCION******************/
+
+DECLARE 
+V_DEPARTMEN_ID NUMBER := 60;
+V_MAXIMO NUMBER;
+V_MINIMO NUMBER; 
+V_AVG    NUMBER;
+V_TOTAL NUMBER;
+BEGIN
+ESCALA_SALARIOS(V_DEPARTMEN_ID,V_MAXIMO,V_MINIMO,V_AVG ,V_TOTAL);
+DBMS_OUTPUT.PUT_LINE('DEPARTAMENTO: '||TO_CHAR(V_DEPARTMEN_ID)||' Maximo: '||TO_CHAR(V_MAXIMO)||' Minimo: '||TO_CHAR(V_MINIMO)||' AVG: '||TO_CHAR(V_AVG)||' TOTAL: '||TO_CHAR(V_TOTAL));
+END;
+/

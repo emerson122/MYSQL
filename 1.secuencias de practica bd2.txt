@@ -1,0 +1,193 @@
+/*---------------------------------------------------PL/SQL----------------------------------------------------------
+                    ES UN LENGUAJE ESTRUCTURADO POR BLOQUES UN BLOQUE PERMIRTE AGRUPAR LOGICAMENTE DECLARACIONES SENTENCIAS Y EXEPCIONES PUEDE SER ANONIMO, PROCEDIMEINTO Y FUNCION
+                    
+                    SE PUEDE ANIDAR SUBLOQUES DE SENTENCIAS Y DE EXEPCIONES
+                    
+                    BLOQUE ANONIMO; ES AQUEL QUE NO LO DEFINIMOS CONSTA DE DECLARACIONES(DECLARE),SENTECIAS(BEGIN),MENEJADORES(EXCEPTION)
+                    
+                    PROCEDIMIENTO: PROCEDUREC NOMBRE(PARAMETRO) IS --DECLARACION BEGIN SENTENCIA Y EXCEPCION
+                    
+                    FUNCTION NOMBRE(PARAMENTROS) RETURN TIPO IS --DECLARACION BEGIN SENTENCIA Y EXCEPCION
+                    
+                    
+                    PROCEDIMIENTO A
+                    VAR X;
+                    VAR Y;
+                    VAR Z;
+                        PROCEDIMIENTO B
+                        X?    <-----------------------------SI SE PUDED UTILIZAR LA VARIABLE QUE SE UTILIZO ANTERIORMENTE
+                    PROCEDIMIENTO B
+                   
+		  CREATE OR REPLACE PROCEDURE REALIZA_CALCULO IS (AREA DECLARATIVO)
+		    C_PI CONTANT NUMBER :=3.1416;
+		    V_CONTADOR INTENGER;
+		    BEGIN
+			V_CONTADOR:=0;
+
+		    SELECT 0
+			INTO V_CONTADOR
+		    FROM DUAL;
+
+		  SELECT EMPLOYEE_ID, FIRST_NAME, LAST_NAME
+			INTO V_EMPID, V_FN, V_IN
+		  FROM EMPLOYEES
+		     WHERE EMPLOYEE_ID=100;
+		  END;
+
+                    SINTAXIS DE VARIABLE CONSTANTE
+                    CONSTANTE_NAME CONSTANT 
+                    TIPO DE DATO [NOT NULL](:=DEFAULT) EXPRESSION;
+
+		    DECLARE (AREA DECLARATIVO)
+		    C_PI CONTANT NUMBER :=3.1416;
+		    V_CONTADOR INTENGER;
+		    BEGIN
+			SENTENCIAS;
+		    END;
+                    
+                    VARIABLE_NAME TIPO_DATO [NOT NULL]
+
+
+  		FUNCTION REALIZA_CALCULO RETURN BOOLEAN IS (AREA DECLARATIVO)
+		    C_PI CONTANT NUMBER :=3.1416;
+		    V_CONTADOR INTENGER;
+		    BEGIN
+			SENTENCIAS;
+		  END;
+
+*/
+
+/*IMPORTANTE PODRIA VENIR EN EXAMEN*/
+/*VARIABLES Y CONSTANTES HAY DIFERENTES FORMAS DE ASIGNAR VALRO A UNA VARIABLE
+
+HAY 3 FORMAS LA PRIMERA ES
+ASIGNAR DIRECTA :=
+
+///////////////////////////////////////////////////////////////////////////////////
+LA SEGUNDA ES 
+
+SELECT...... INTO VARIABLE,..., VARIABLE 
+
+
+LA TERCERA ES
+//////////////////////////////////////////////////////////////////////////////////
+FETCH cursor INTO variable,..., variable
+/*----------------------------TIPO DE DATOS-----------------------------------------
+TIPOS DE DATOS SCALAR COMO INTEGER NUMBER NUMERIC
+
+*/
+
+
+
+/*ejemplo de bloque anonimo
+analizar un salario de un empleado en particular en base a logica retorne un mensaje en pantalla con el analisis de su salario
+*/
+
+DECLARE
+	v_salary hr.employees.salary%type;
+BEGIN
+--obtener valor de v_salary
+	SELECT salary
+	into v_salary
+	from hr.employees
+	where employee_id = 100;
+DBMS_OUTPUT.PUT_LINE('Salario:'|| v_salary);
+case
+when v_salary = 0 then
+	DBMS_OUTPUT.PUT_LINE('Empleado trabaja gratis');
+when v_salary < 10000 then
+DBMS_OUTPUT.PUT_LINE('Empleado con salario Bajo');
+when v_salary < 500000 then
+DBMS_OUTPUT.PUT_LINE('Empleado con salario mas o menos');
+when v_salary > 500000 then
+DBMS_OUTPUT.PUT_LINE('Empleado con salario alto');
+end case;
+end;
+/
+
+/*EJEMPLO DE LOOP QUE DESPLIEGA UN MENSAJE DEL 1 AL 10*/
+
+DECLARE
+/* SE DECLARA UNA VARIABLE CON ENTERO 0 POR DEFECTO*/
+	v_cnt integer default 0;
+BEGIN
+	loop
+	    --LA VARIABLE V_CNT INCREMENTEARA EN 1 EN CADA VUELTA DEL LOOP
+	    
+		v_cnt := v_cnt +1;
+		
+		--IMPRIMIMOS EN PATALLA EL VALOR CONCATENADO DE LA VARIABLE
+	DBMS_OUTPUT.PUT_LINE('Contador:'|| v_cnt);
+	
+	--INICIAMOS UN CICLO QUE DETENDRA EL PROGRAMA AL LLEGAR A 10
+	if v_cnt >= 10 then
+	    DBMS_OUTPUT.PUT_LINE('ya llegamos a 10');
+	    EXIT;-- DETENEMOS EL CICLO  LOOP
+	END IF;
+END LOOP; --DETENER EL CICLO LOOP
+END;
+/
+
+/*CUENTA REGRESIVA HASTA 0 CON WHILE LOOP*/
+
+DECLARE
+	v_cnt integer default 0;
+BEGIN
+	v_cnt:= 10;
+	WHILE(v_cnt>0) loop
+		DBMS_OUTPUT.PUT_LINE('Contador:'||v_cnt);
+	v_cnt:= v_cnt -1;
+	if v_cnt = 0 then
+		DBMS_OUTPUT.PUT_LINE('Ya llegamos');
+	end if;
+	end loop;
+end;
+/
+
+
+/*Cuenta progresiva con for loop*/
+DECLARE 
+	v_cnt integer default 0;
+BEGIN 
+	FOR v_cnt in 1..10 LOOP
+	 DBMS_OUTPUT.PUT_LINE('Contador:' || v_cnt);
+	END LOOP;
+	DBMS_OUTPUT.PUT_LINE('Ya llegamos a 10');
+
+END;
+/
+
+
+
+/*Cuenta regresiva con for loop*/
+DECLARE 
+	v_cnt integer default 0;
+BEGIN 
+ 	--se le coloca un reverse despues del in para disminuir la cuenta 
+	FOR v_cnt in reverse 1..10 LOOP
+	 DBMS_OUTPUT.PUT_LINE('Contador:' || v_cnt);
+	END LOOP;
+	DBMS_OUTPUT.PUT_LINE('Ya llegamos a 10');
+
+END;
+/
+
+
+/*---------------------------------------------------------------*/
+DECLARE 
+	v_flag number;
+BEGIN
+	v_flag := 1;
+	if v_flag = 1 then
+		goto paso2;
+	end if;
+
+	<<paso1>>
+		dbms_output.put_line('EJECUCION DE PASO 1');
+	<<paso2>>
+		dbms_output.put_line('EJECUCION DE PASO 2');
+end;
+
+/*1.Crear una función que reciba como parámetro de entrada el nombre del departamento (Ejemplo “Sales”) y 
+calcule el salario promedio del departamento. La función deberá devolver un mensaje como el siguiente:
+“El departamento Sales tiene un salario promedio de 8955” */
